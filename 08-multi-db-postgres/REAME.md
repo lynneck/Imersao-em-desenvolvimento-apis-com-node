@@ -42,3 +42,16 @@ docker run \
     docker exec -it mongodb \
     mongo --host localhost -u admin -p senhaadmin --authenticationDatabase admin \
     --eval "db.getSiblingDB('herois').createUser({user:'paulolynneck', pwd:'plml@2022', roles:[{role:'readWrite', db:'herois'}]})"
+
+    docker exec -it mongodb \
+    mongo --host localhost -u admin -p plml@2023 --authenticationDatabase admin \
+    --eval "db.getSiblingDB('herois').createUser({user:'paulo', pwd:'plml', roles:[{role:'readWrite', db:'herois'}]})"
+
+    db.updateUser(
+     "paulolynneck", 
+    {
+        pwd:"plml",
+        customData:{senha:"alteracao de senha"},
+        roles:[{role:'readWrite', db:'herois'}]
+    }
+    )
