@@ -1,6 +1,7 @@
 
 const BaseRoute = require('./base/baseRoute')
 const Joi = require('joi')
+const Boom = require('boom')
 class HeroRoutes extends BaseRoute {
     constructor(db) {
         super()
@@ -29,6 +30,7 @@ class HeroRoutes extends BaseRoute {
                         limit,
                         nome
                     } = request.query
+                    
                     const query = nome ? {
                         nome: { $regex: new RegExp(nome, 'i') }
                     } : {}
@@ -37,8 +39,7 @@ class HeroRoutes extends BaseRoute {
 
                 } catch (error) {
                     console.log('DEU RUIM', error)
-                    return "Erro interno do servidor"
-
+                    return Boom.internal()
                 }
             }
         }
@@ -70,7 +71,7 @@ class HeroRoutes extends BaseRoute {
                     
                 } catch (error) {
                     console.log('DEU RUIM', error)
-                    return 'Internal error'
+                    return Boom.internal()
                 }
             }
         }
@@ -106,19 +107,55 @@ class HeroRoutes extends BaseRoute {
                     const result = await this.db.update(id, dados)
                    // console.log('result',result)
                    if(result.modifiedCount !== 1){
-                    return  'Não foi possível atualizar'
+                    return Boom.preconditionFailed ("Id não encontrado no banco!")
                 }
                     return "Heroi atualizado com sucesso!"
         
                     
                 } catch (error) {
                     console.log('DEU RUIM', error)
-                    return 'Internal error'
+                    return Boom.internal()
+                }
+            }
+        }
+    }
+    delete() {
+        return {
+            path: '/herois/{id}',
+            method: 'DELETE',
+            options: {
+                validate: {
+                    failAction:'error',
+                    params: Joi.object({
+                        id: Joi.string().required(),
+                  })
+                    //options({ stripUnknown: true })
+                }
+            },
+            handler: async (request)=>{
+                try {
+                    const {
+                        id
+                    } = request.params;
+                    
+                    const result = await this.db.delete(id)
+                   // console.log('result',result)
+                   if(result.deletedCount !== 1){
+                    return Boom.preconditionFailed ('ID não encontrado, digite um ID válido')
+                }
+                    return "Heroi removido com sucesso com sucesso!"
+        
+                    
+                } catch (error) {
+                   // console.log('DEU RUIM', error)
+                    return Boom.internal()
                 }
             }
         }
     }
 }
+
+
 
 
 

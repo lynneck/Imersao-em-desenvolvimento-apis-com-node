@@ -1,6 +1,7 @@
 
 const BaseRoute = require('./base/baseRoute')
 const Joi = require('joi')
+const Boom = require('@hapi/boom')
 class HeroRoutes extends BaseRoute {
     constructor(db) {
         super()
@@ -12,6 +13,9 @@ class HeroRoutes extends BaseRoute {
             path: '/herois',
             method: 'GET',
             options: {
+                tags:['api'],
+                description: 'Deve listar herois',
+                notes:'pode paginar resultados e filtrar por nome',
                 validate: {
 
                     query: Joi.object({
@@ -29,6 +33,7 @@ class HeroRoutes extends BaseRoute {
                         limit,
                         nome
                     } = request.query
+                    
                     const query = nome ? {
                         nome: { $regex: new RegExp(nome, 'i') }
                     } : {}
@@ -37,8 +42,7 @@ class HeroRoutes extends BaseRoute {
 
                 } catch (error) {
                     console.log('DEU RUIM', error)
-                    return "Erro interno do servidor"
-
+                    return Boom.internal()
                 }
             }
         }
@@ -49,6 +53,9 @@ class HeroRoutes extends BaseRoute {
             path: '/herois',
             method: 'POST',
             options: {
+                tags:['api'],
+                description: 'Deve casdastrar herois',
+                notes:'pode cadastar nome e poder do heroi',
                 validate: {
                     failAction: 'log',
                     payload: Joi.object({
@@ -70,7 +77,7 @@ class HeroRoutes extends BaseRoute {
                     
                 } catch (error) {
                     console.log('DEU RUIM', error)
-                    return 'Internal error'
+                    return Boom.internal()
                 }
             }
         }
@@ -80,6 +87,9 @@ class HeroRoutes extends BaseRoute {
             path: '/herois/{id}',
             method: 'PATCH',
             options: {
+                tags:['api'],
+                description: 'Deve atualizar heroi por id',
+                notes:'pode atualizar qualquer campo',
                 validate: {
                     
                     params: Joi.object({
@@ -106,19 +116,58 @@ class HeroRoutes extends BaseRoute {
                     const result = await this.db.update(id, dados)
                    // console.log('result',result)
                    if(result.modifiedCount !== 1){
-                    return  'Não foi possível atualizar'
+                    return Boom.preconditionFailed ("Id não encontrado no banco!")
                 }
                     return "Heroi atualizado com sucesso!"
         
                     
                 } catch (error) {
                     console.log('DEU RUIM', error)
-                    return 'Internal error'
+                    return Boom.internal()
+                }
+            }
+        }
+    }
+    delete() {
+        return {
+            path: '/herois/{id}',
+            method: 'DELETE',
+            options: {
+                tags:['api'],
+                description: 'Deve deletar heroi por id',
+                notes:'pode excluir qualquer heroi',
+                validate: {
+                    failAction:'error',
+                    params: Joi.object({
+                        id: Joi.string().required(),
+                  })
+                    //options({ stripUnknown: true })
+                }
+            },
+            handler: async (request)=>{
+                try {
+                    const {
+                        id
+                    } = request.params;
+                    
+                    const result = await this.db.delete(id)
+                   // console.log('result',result)
+                   if(result.deletedCount !== 1){
+                    return Boom.preconditionFailed ('ID não encontrado, digite um ID válido')
+                }
+                    return "Heroi removido com sucesso com sucesso!"
+        
+                    
+                } catch (error) {
+                   // console.log('DEU RUIM', error)
+                    return Boom.internal()
                 }
             }
         }
     }
 }
+
+
 
 
 

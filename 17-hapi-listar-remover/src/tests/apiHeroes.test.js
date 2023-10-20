@@ -14,7 +14,7 @@ const MOCK_HEROI_INICIAL = {
 
 let MOCK_ID = ''
 
-describe.only('Suite de testes da API Herois', function (){
+describe('Suite de testes da API Herois', function (){
     this.beforeAll( async () => {
         app = await api
         const result = await app.inject({
@@ -86,7 +86,7 @@ describe.only('Suite de testes da API Herois', function (){
             payload: JSON.stringify(MOCK_HEROI_CADASTRAR)    
         })
         const statusCode = result.statusCode
-        //console.log('resultado', result.payload)
+        ////console.log('resultado', result.payload)
         const {message, _id} = JSON.parse(result.payload)
         assert.ok(statusCode === 200)
         assert.notStrictEqual(_id, undefined)
@@ -104,33 +104,91 @@ describe.only('Suite de testes da API Herois', function (){
             payload: JSON.stringify(expected)    
         })
         const statusCode = result.statusCode
-        console.log(statusCode)
+        //console.log(statusCode)
         
         const dados = (result.payload)
-        console.log('dados', dados)
+        //console.log('dados', dados)
 
         assert.ok(statusCode === 200)
         assert.deepEqual(dados, "Heroi atualizado com sucesso!")
     })
     it('atualizar PATCH - /herois/:id - não deve atualizar com ID incorreto', async () =>{
-        const _id = `652571303dcca60dd1df682a`
-        const expected = {
-            poder: 'Super Mira'
-        }
+        const _id = `652571303dcca60dd1df682b`
+     
         const result = await app.inject({
             method: 'PATCH',
             url: `/herois/${_id}`,
-            payload: JSON.stringify(expected)    
+            payload: JSON.stringify({
+                poder: 'Super Mira'
+            })    
         })
         const statusCode = result.statusCode
-        console.log(statusCode)
+        //console.log(statusCode)
         
         const dados = (result.payload)
-        console.log('dados', dados)
+        const expected = {statusCode:412,error:"Precondition Failed",message:"Id não encontrado no banco!"}
+        
+       //console.log('dados', dados)
+
+        assert.ok(statusCode === 412)
+        assert.deepEqual(dados, JSON.stringify(expected))
+    })
+    it('remover DELETE - /herois/:id', async () => {
+        const _id = MOCK_ID
+        const result = await app.inject({
+            method:'DELETE',
+            url:`/herois/${_id}`
+        })
+        
+        const dados = (result.payload)
+        const statusCode = result.statusCode
 
         assert.ok(statusCode === 200)
-        assert.deepEqual(dados, "Não foi possível atualizar")
+        assert.deepEqual(dados, 'Heroi removido com sucesso com sucesso!')
     })
+    it('atualizar DELETE - /herois/:id - não deve remover com ID incorreto', async () =>{
+        const _id = `652571303dcca60dd1df682b`
+     
+        const result = await app.inject({
+            method: 'DELETE',
+            url: `/herois/${_id}`,
+            payload: JSON.stringify({
+                poder: 'Super Mira'
+            })    
+        })
+        const statusCode = result.statusCode
+        //console.log(statusCode)
+        
+        const dados = (result.payload)
+        const expected = {statusCode:412,error:"Precondition Failed",message:"ID não encontrado, digite um ID válido"}
+        
+       //console.log('dados', dados)
+
+        assert.ok(statusCode === 412)
+        assert.deepEqual(dados, JSON.stringify(expected))
+    })
+    it('atualizar DELETE - /herois/:id - não deve remover com ID incorreto', async () =>{
+        const _id = 'ID_INVALIDO'
+     
+        const result = await app.inject({
+            method: 'DELETE',
+            url: `/herois/${_id}`, 
+        })
+        const statusCode = result.statusCode
+        //console.log(statusCode)
+        
+        const dados = (result.payload)
+        const expected = {statusCode:500,
+            error:"Internal Server Error",
+            message:"An internal server error occurred"
+        }
+        
+       //console.log('dados', dados)
+
+        assert.ok(statusCode === 500)
+        assert.deepEqual(dados, JSON.stringify(expected))
+    })
+    
 
 
 })
